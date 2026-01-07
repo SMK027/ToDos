@@ -1,0 +1,292 @@
+@page "/todos"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+
+@using ToDos.Models
+@using ToDos.Services
+@inject TodoService TodoService
+
+<PageTitle>ToDos</PageTitle>
+
+<h1>ToDos</h1>
+<p>Liste des todos :</p>
+
+@if (todos == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Libellé</th>
+                <th>Commentaire</th>
+                <th>Date planifiée</th>
+                <th>Date de réalisation</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var todo in todos)
+            {
+                <tr>
+                    <td>@todo.Id</td>
+                    <td>@todo.Libelle</td>
+                    <td>@todo.Commentaire</td>
+                    <td>@todo.Date_planif.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        @(todo.Date_realisation.HasValue
+                            ? todo.Date_realisation.Value.ToString("yyyy-MM-dd")
+                            : "")
+                    </td>
+                    <td>
+                        <button class="btn btn-warning btn-sm me-2"
+                                @onclick="() => ShowEditForm(todo)">
+                            Modifier
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                                @onclick="() => ConfirmDelete(todo)">
+                            Supprimer
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (showDeleteConfirm && todoToDelete != null)
+    {
+        <div class="alert alert-danger mt-3">
+            <p>
+                Êtes-vous sûr de vouloir supprimer :
+                <strong>@todoToDelete.Libelle</strong> ?
+            </p>
+
+            <button class="btn btn-danger me-2"
+                    @onclick="DeleteTodo">
+                Oui, supprimer
+            </button>
+
+            <button class="btn btn-secondary"
+                    @onclick="CancelDelete">
+                Annuler
+            </button>
+        </div>
+    }
+    <button class="btn btn-success mb-3"
+            @onclick="ShowCreateForm">
+        Ajouter une ToDo
+    </button>
+    @if (showCreateForm)
+    {
+        <EditForm Model="@newTodo"
+                  OnValidSubmit="CreateTodo"
+                  @key="formKey">
+
+            <DataAnnotationsValidator />
+
+            <div class="mb-2">
+                <label>Libellé</label>
+                <InputText class="form-control"
+                           @bind-Value="newTodo.Libelle" />
+            </div>
+
+            <div class="mb-2">
+                <label>Commentaire</label>
+                <InputText class="form-control"
+                           @bind-Value="newTodo.Commentaire" />
+            </div>
+
+            <div class="mb-2">
+                <label>Date planifiée</label>
+                <InputDate TValue="DateTime"
+                           class="form-control"
+                           @bind-Value="newTodo.Date_planif" />
+            </div>
+
+            <div class="mb-2">
+                <label>Date de réalisation</label>
+                <InputDate TValue="DateTime?"
+                           class="form-control"
+                           @bind-Value="newTodo.Date_realisation" />
+            </div>
+
+            <div class="mt-3">
+                <button class="btn btn-primary me-2">Ajouter</button>
+                <button type="button"
+                        class="btn btn-secondary"
+                        @onclick="CancelCreate">
+                    Annuler
+                </button>
+            </div>
+        </EditForm>
+    }
+    @if (showEditForm)
+    {
+        <h3>Modifier la ToDo</h3>
+
+        <EditForm Model="@editTodo"
+                  OnValidSubmit="UpdateTodo"
+                  @key="editFormKey">
+
+            <DataAnnotationsValidator />
+
+            <div class="mb-2">
+                <label>Libellé</label>
+                <InputText class="form-control"
+                           @bind-Value="editTodo.Libelle" />
+            </div>
+
+            <div class="mb-2">
+                <label>Commentaire</label>
+                <InputText class="form-control"
+                           @bind-Value="editTodo.Commentaire" />
+            </div>
+
+            <div class="mb-2">
+                <label>Date planifiée</label>
+                <InputDate TValue="DateTime"
+                           class="form-control"
+                           @bind-Value="editTodo.Date_planif" />
+            </div>
+
+            <div class="mb-2">
+                <label>Date de réalisation</label>
+                <InputDate TValue="DateTime ?"
+                           class="form-control"
+                           @bind-Value="editTodo.Date_realisation" />
+            </div>
+
+            <div class="mt-3">
+                <button class="btn btn-primary me-2">Enregistrer</button>
+                <button type="button"
+                        class="btn btn-secondary"
+                        @onclick="CancelEdit">
+                    Annuler
+                </button>
+            </div>
+        </EditForm>
+    }
+}
+@code {
+    // =============================
+    // Données
+    // =============================
+
+    private List<TodosVM>? todos;
+
+    private TodosVM newTodo = new()
+    {
+        Date_planif = DateTime.Today
+    };
+
+    private TodosVM editTodo = new();
+
+    // =============================
+    // États UI
+    // =============================
+
+    private bool showCreateForm = false;
+    private bool showEditForm = false;
+    private bool showDeleteConfirm = false;
+
+    private TodosVM? todoToDelete;
+
+    // Clés pour forcer la recréation des formulaires
+    private Guid formKey = Guid.NewGuid();
+    private Guid editFormKey = Guid.NewGuid();
+
+    // =============================
+    // Cycle de vie
+    // =============================
+
+    protected override async Task OnInitializedAsync()
+    {
+        todos = await TodoService.GetTodosAsync();
+    }
+
+    // =============================
+    // UI – Affichage formulaires
+    // =============================
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+        showEditForm = false;
+
+        newTodo = new TodosVM
+        {
+            Date_planif = DateTime.Today
+        };
+
+        formKey = Guid.NewGuid();
+    }
+
+    private void ShowEditForm(TodosVM todo)
+    {
+        editTodo = new TodosVM
+        {
+            Id = todo.Id,
+            Libelle = todo.Libelle,
+            Commentaire = todo.Commentaire,
+            Date_planif = todo.Date_planif,
+            Date_realisation = todo.Date_realisation
+        };
+
+        editFormKey = Guid.NewGuid();
+
+        showEditForm = true;
+        showCreateForm = false;
+    }
+
+    private void CancelCreate() => showCreateForm = false;
+    private void CancelEdit() => showEditForm = false;
+
+    // =============================
+    // CRUD
+    // =============================
+
+    private async Task CreateTodo()
+    {
+        await TodoService.AddTodoAsync(newTodo);
+        todos = await TodoService.GetTodosAsync();
+        showCreateForm = false;
+    }
+
+    private async Task UpdateTodo()
+    {
+        await TodoService.UpdateTodoAsync(editTodo);
+        todos = await TodoService.GetTodosAsync();
+        showEditForm = false;
+    }
+
+    private void ConfirmDelete(TodosVM todo)
+    {
+        todoToDelete = todo;
+        showDeleteConfirm = true;
+        showCreateForm = false;
+        showEditForm = false;
+    }
+
+    private async Task DeleteTodo()
+    {
+        if (todoToDelete == null)
+            return;
+
+        await TodoService.DeleteTodoAsync(todoToDelete.Id);
+        todos = await TodoService.GetTodosAsync();
+
+        showDeleteConfirm = false;
+        todoToDelete = null;
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteConfirm = false;
+        todoToDelete = null;
+    }
+}
