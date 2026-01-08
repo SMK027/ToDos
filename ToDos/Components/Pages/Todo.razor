@@ -64,46 +64,51 @@ else
         </div>
     </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Libellé</th>
-                <th>Commentaire</th>
-                <th>Date planifiée</th>
-                <th>Date de réalisation</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
+    <RadzenDataGrid Data="@todos"
+                    TItem="TodosVM"
+                    AllowPaging="true"
+                    PageSize="10"
+                    AllowSorting="true"
+                    AllowColumnResize="true"
+                    Responsive="true"
+                    EmptyText="Aucune ToDo"
+                    class="w-100">
 
-        <tbody>
-            @foreach (var todo in todos)
-            {
-                <tr>
-                    <td>@todo.Id</td>
-                    <td>@todo.Libelle</td>
-                    <td>@todo.Commentaire</td>
-                    <td>@todo.Date_planif.ToString("yyyy-MM-dd")</td>
-                    <td>
-                        @(todo.Date_realisation.HasValue
-                            ? todo.Date_realisation.Value.ToString("yyyy-MM-dd")
-                            : "")
-                    </td>
-                    <td>
-                        <button class="btn btn-warning btn-sm me-2"
-                                @onclick="() => ShowEditForm(todo)">
-                            Modifier
-                        </button>
+        <Columns>
+            <RadzenDataGridColumn TItem="TodosVM" Property="Id" Title="ID" Width="80px" />
 
-                        <button class="btn btn-danger btn-sm"
-                                @onclick="() => ConfirmDelete(todo)">
-                            Supprimer
-                        </button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+            <RadzenDataGridColumn TItem="TodosVM" Property="Libelle" Title="Libellé" />
+
+            <RadzenDataGridColumn TItem="TodosVM" Property="Commentaire" Title="Commentaire" />
+
+            <RadzenDataGridColumn TItem="TodosVM" Property="Date_planif" Title="Date planifiée">
+                <Template Context="t">
+                    @t.Date_planif.ToString("yyyy-MM-dd")
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="TodosVM" Property="Date_realisation" Title="Date de réalisation">
+                <Template Context="t">
+                    @(t.Date_realisation.HasValue? t.Date_realisation.Value.ToString("yyyy-MM-dd") : "")
+                </Template>
+            </RadzenDataGridColumn>
+
+            <RadzenDataGridColumn TItem="TodosVM" Title="Actions" Sortable="false" Filterable="false" Width="180px">
+                <Template Context="t">
+                    <RadzenButton Text="Modifier"
+                                  ButtonStyle="ButtonStyle.Warning"
+                                  Size="ButtonSize.Small"
+                                  Click="@(args => ShowEditForm(t))"
+                                  style="margin-right:8px" />
+
+                    <RadzenButton Text="Supprimer"
+                                  ButtonStyle="ButtonStyle.Danger"
+                                  Size="ButtonSize.Small"
+                                  Click="@(args => ConfirmDelete(t))" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
 
     @if (showDeleteConfirm && todoToDelete != null)
     {
@@ -341,7 +346,10 @@ else
         todoToDelete = null;
     }
 
+    // =============================
     // Filtrage
+    // =============================
+
     private void SyncStatusToFilter()
     {
         filter.IsDone = statusValue switch

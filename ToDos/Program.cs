@@ -1,6 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using Radzen;
 using ToDos.Components;
 using ToDos.Services;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // --- Ajouter le service TodoService ---
 builder.Services.AddScoped<TodoService>();
+
+// Service utilisé pour les composants Radzen
+builder.Services.AddRadzenComponents();
 
 var app = builder.Build();
 
