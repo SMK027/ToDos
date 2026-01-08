@@ -95,7 +95,9 @@ else
 
             <RadzenDataGridColumn TItem="TodosVM" Title="Statut">
                 <Template Context="t">
-                    @t.Statut
+                    <span class="badge @GetStatusBadgeClass(t)">
+                        @t.Statut
+                    </span>
                 </Template>
             </RadzenDataGridColumn>
 
@@ -445,5 +447,14 @@ else
         statusValue = "";
         todos = await TodoService.GetTodosAsync(filter);
     }
+
+    private string GetStatusBadgeClass(TodosVM t) => t.Statut switch
+    {
+        "En avance" => "bg-success",
+        "Terminée à temps" => "bg-primary",
+        "En retard" => "bg-danger",
+        _ => "bg-secondary" // En cours
+    };
+
 
 }
