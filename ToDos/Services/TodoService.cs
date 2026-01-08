@@ -12,9 +12,48 @@ namespace ToDos.Services
             _context = context;
         }
 
-        public async Task<List<TodosVM>> GetTodosAsync()
+        public Task<List<TodosVM>> GetTodosAsync()
+            => GetTodosAsync(new TodoFilter());
+
+        public async Task<List<TodosVM>> GetTodosAsync(TodoFilter filter)
         {
-            return await _context.Todos.OrderBy(t => t.Id).ToListAsync();
+            IQueryable<TodosVM> query = _context.Todos;
+
+            // Recherche texte (Libellé + Commentaire)
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                var s = filter.Search.Trim();
+                query = query.Where(t =>
+                    t.Libelle.Contains(s) ||
+                    (t.Commentaire != null && t.Commentaire.Contains(s)));
+            }
+
+            // Statut (fait / non fait)
+            if (filter.IsDone.HasValue)
+            {
+                if (filter.IsDone.Value)
+                    query = query.Where(t => t.Date_realisation != null);
+                else
+                    query = query.Where(t => t.Date_realisation == null);
+            }
+
+            // Date planifiée
+            if (filter.PlanifFrom.HasValue)
+                query = query.Where(t => t.Date_planif >= filter.PlanifFrom.Value.Date);
+
+            if (filter.PlanifTo.HasValue)
+                query = query.Where(t => t.Date_planif <= filter.PlanifTo.Value.Date);
+
+            // Date de réalisation
+            if (filter.DoneFrom.HasValue)
+                query = query.Where(t => t.Date_realisation >= filter.DoneFrom.Value.Date);
+
+            if (filter.DoneTo.HasValue)
+                query = query.Where(t => t.Date_realisation <= filter.DoneTo.Value.Date);
+
+            return await query
+                .OrderBy(t => t.Id)
+                .ToListAsync();
         }
 
         public async Task AddTodoAsync(TodosVM todo)
@@ -48,7 +87,5 @@ namespace ToDos.Services
             _context.Todos.Remove(todo);
             await _context.SaveChangesAsync();
         }
-
-
     }
 }

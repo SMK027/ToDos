@@ -17,6 +17,53 @@
 }
 else
 {
+    <div class="card p-3 mb-3">
+        <h5>Filtres</h5>
+
+        <div class="row g-2">
+            <div class="col-md-4">
+                <label class="form-label">Recherche (libellé/commentaire)</label>
+                <InputText class="form-control" @bind-Value="filter.Search" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Statut</label>
+                <select class="form-select" @bind="statusValue">
+                    <option value="">Tous</option>
+                    <option value="todo">À faire</option>
+                    <option value="done">Faits</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Planif du</label>
+                <InputDate TValue="DateTime?" class="form-control" @bind-Value="filter.PlanifFrom" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">au</label>
+                <InputDate TValue="DateTime?" class="form-control" @bind-Value="filter.PlanifTo" />
+            </div>
+        </div>
+
+        <div class="row g-2 mt-2">
+            <div class="col-md-2">
+                <label class="form-label">Réalisée du</label>
+                <InputDate TValue="DateTime?" class="form-control" @bind-Value="filter.DoneFrom" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">au</label>
+                <InputDate TValue="DateTime?" class="form-control" @bind-Value="filter.DoneTo" />
+            </div>
+
+            <div class="col-md-8 d-flex align-items-end justify-content-end gap-2">
+                <button class="btn btn-primary" @onclick="ApplyFilter">Filtrer</button>
+                <button class="btn btn-outline-secondary" @onclick="ResetFilter">Réinitialiser</button>
+            </div>
+        </div>
+    </div>
+
     <table class="table">
         <thead>
             <tr>
@@ -156,7 +203,7 @@ else
 
             <div class="mb-2">
                 <label>Date de réalisation</label>
-                <InputDate TValue="DateTime ?"
+                <InputDate TValue="DateTime?"
                            class="form-control"
                            @bind-Value="editTodo.Date_realisation" />
             </div>
@@ -186,6 +233,10 @@ else
 
     private TodosVM editTodo = new();
 
+    private TodoFilter filter = new();
+
+    private string statusValue = ""; // "", "todo", "done"
+
     // =============================
     // États UI
     // =============================
@@ -206,7 +257,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        todos = await TodoService.GetTodosAsync();
+        todos = await TodoService.GetTodosAsync(filter);
     }
 
     // =============================
@@ -253,14 +304,14 @@ else
     private async Task CreateTodo()
     {
         await TodoService.AddTodoAsync(newTodo);
-        todos = await TodoService.GetTodosAsync();
+        todos = await TodoService.GetTodosAsync(filter);
         showCreateForm = false;
     }
 
     private async Task UpdateTodo()
     {
         await TodoService.UpdateTodoAsync(editTodo);
-        todos = await TodoService.GetTodosAsync();
+        todos = await TodoService.GetTodosAsync(filter);
         showEditForm = false;
     }
 
@@ -278,7 +329,7 @@ else
             return;
 
         await TodoService.DeleteTodoAsync(todoToDelete.Id);
-        todos = await TodoService.GetTodosAsync();
+        todos = await TodoService.GetTodosAsync(filter);
 
         showDeleteConfirm = false;
         todoToDelete = null;
@@ -289,4 +340,29 @@ else
         showDeleteConfirm = false;
         todoToDelete = null;
     }
+
+    // Filtrage
+    private void SyncStatusToFilter()
+    {
+        filter.IsDone = statusValue switch
+        {
+            "done" => true,
+            "todo" => false,
+            _ => null
+        };
+    }
+
+    private async Task ApplyFilter()
+    {
+        SyncStatusToFilter();
+        todos = await TodoService.GetTodosAsync(filter);
+    }
+
+    private async Task ResetFilter()
+    {
+        filter = new TodoFilter();
+        statusValue = "";
+        todos = await TodoService.GetTodosAsync(filter);
+    }
+
 }
