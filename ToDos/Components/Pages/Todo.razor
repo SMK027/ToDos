@@ -135,94 +135,132 @@ else
     </button>
     @if (showCreateForm)
     {
-        <EditForm Model="@newTodo"
-                  OnValidSubmit="CreateTodo"
-                  @key="formKey">
+        <div class="accordion mb-3" id="todoCreateAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingCreate">
+                    <button class="accordion-button @(createAccordionOpen ? "" : "collapsed")"
+                            type="button"
+                            @onclick="() => createAccordionOpen = !createAccordionOpen">
+                        Ajouter une ToDo
+                    </button>
+                </h2>
 
-            <DataAnnotationsValidator />
+                <div class="accordion-collapse collapse @(createAccordionOpen ? "show" : "")"
+                     aria-labelledby="headingCreate">
+                    <div class="accordion-body">
 
-            <div class="mb-2">
-                <label>Libellé</label>
-                <InputText class="form-control"
-                           @bind-Value="newTodo.Libelle" />
+                        <EditForm Model="@newTodo"
+                                  OnValidSubmit="CreateTodo"
+                                  @key="formKey">
+
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-2">
+                                <label>Libellé</label>
+                                <InputText class="form-control"
+                                           @bind-Value="newTodo.Libelle" />
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Commentaire</label>
+                                <InputText class="form-control"
+                                           @bind-Value="newTodo.Commentaire" />
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Date planifiée</label>
+                                <InputDate TValue="DateTime"
+                                           class="form-control"
+                                           @bind-Value="newTodo.Date_planif" />
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Date de réalisation</label>
+                                <InputDate TValue="DateTime ?"
+                                           class="form-control"
+                                           @bind-Value="newTodo.Date_realisation" />
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-primary me-2">Ajouter</button>
+                                <button type="button"
+                                        class="btn btn-secondary"
+                                        @onclick="CancelCreate">
+                                    Annuler
+                                </button>
+                            </div>
+                        </EditForm>
+
+                    </div>
+                </div>
             </div>
-
-            <div class="mb-2">
-                <label>Commentaire</label>
-                <InputText class="form-control"
-                           @bind-Value="newTodo.Commentaire" />
-            </div>
-
-            <div class="mb-2">
-                <label>Date planifiée</label>
-                <InputDate TValue="DateTime"
-                           class="form-control"
-                           @bind-Value="newTodo.Date_planif" />
-            </div>
-
-            <div class="mb-2">
-                <label>Date de réalisation</label>
-                <InputDate TValue="DateTime?"
-                           class="form-control"
-                           @bind-Value="newTodo.Date_realisation" />
-            </div>
-
-            <div class="mt-3">
-                <button class="btn btn-primary me-2">Ajouter</button>
-                <button type="button"
-                        class="btn btn-secondary"
-                        @onclick="CancelCreate">
-                    Annuler
-                </button>
-            </div>
-        </EditForm>
+        </div>
     }
+
     @if (showEditForm)
     {
-        <h3>Modifier la ToDo</h3>
+        <div class="accordion mb-3" id="todoEditAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingEdit">
+                    <button class="accordion-button @(editAccordionOpen ? "" : "collapsed")"
+                            type="button"
+                            @onclick="() => editAccordionOpen = !editAccordionOpen">
+                        Modifier la ToDo #@editTodo.Id
+                    </button>
+                </h2>
 
-        <EditForm Model="@editTodo"
-                  OnValidSubmit="UpdateTodo"
-                  @key="editFormKey">
+                <div class="accordion-collapse collapse @(editAccordionOpen ? "show" : "")"
+                     aria-labelledby="headingEdit">
+                    <div class="accordion-body">
 
-            <DataAnnotationsValidator />
+                        <EditForm Model="@editTodo"
+                                  OnValidSubmit="UpdateTodo"
+                                  @key="editFormKey">
 
-            <div class="mb-2">
-                <label>Libellé</label>
-                <InputText class="form-control"
-                           @bind-Value="editTodo.Libelle" />
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-2">
+                                <label>Libellé</label>
+                                <InputText class="form-control"
+                                           @bind-Value="editTodo.Libelle" />
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Commentaire</label>
+                                <InputText class="form-control"
+                                           @bind-Value="editTodo.Commentaire" />
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Date planifiée</label>
+                                <InputDate TValue="DateTime"
+                                           class="form-control"
+                                           @bind-Value="editTodo.Date_planif" />
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Date de réalisation</label>
+                                <InputDate TValue="DateTime ?"
+                                           class="form-control"
+                                           @bind-Value="editTodo.Date_realisation" />
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-primary me-2">Enregistrer</button>
+                                <button type="button"
+                                        class="btn btn-secondary"
+                                        @onclick="CancelEdit">
+                                    Annuler
+                                </button>
+                            </div>
+                        </EditForm>
+
+                    </div>
+                </div>
             </div>
-
-            <div class="mb-2">
-                <label>Commentaire</label>
-                <InputText class="form-control"
-                           @bind-Value="editTodo.Commentaire" />
-            </div>
-
-            <div class="mb-2">
-                <label>Date planifiée</label>
-                <InputDate TValue="DateTime"
-                           class="form-control"
-                           @bind-Value="editTodo.Date_planif" />
-            </div>
-
-            <div class="mb-2">
-                <label>Date de réalisation</label>
-                <InputDate TValue="DateTime?"
-                           class="form-control"
-                           @bind-Value="editTodo.Date_realisation" />
-            </div>
-
-            <div class="mt-3">
-                <button class="btn btn-primary me-2">Enregistrer</button>
-                <button type="button"
-                        class="btn btn-secondary"
-                        @onclick="CancelEdit">
-                    Annuler
-                </button>
-            </div>
-        </EditForm>
+        </div>
     }
+
 }
 @code {
     // =============================
@@ -241,6 +279,12 @@ else
     private TodoFilter filter = new();
 
     private string statusValue = ""; // "", "todo", "done"
+    
+    // =============================
+    // Accordéons
+    // =============================
+    private bool createAccordionOpen = true;
+    private bool editAccordionOpen = true;
 
     // =============================
     // États UI
@@ -273,6 +317,7 @@ else
     {
         showCreateForm = true;
         showEditForm = false;
+        showDeleteConfirm = false;
 
         newTodo = new TodosVM
         {
@@ -280,6 +325,8 @@ else
         };
 
         formKey = Guid.NewGuid();
+
+        createAccordionOpen = true; // ouvre l'accordéon
     }
 
     private void ShowEditForm(TodosVM todo)
@@ -297,10 +344,24 @@ else
 
         showEditForm = true;
         showCreateForm = false;
+        showDeleteConfirm = false;
+
+        editAccordionOpen = true; // ouvre l'accordéon
     }
 
-    private void CancelCreate() => showCreateForm = false;
-    private void CancelEdit() => showEditForm = false;
+
+    private void CancelCreate()
+    {
+        showCreateForm = false;
+        createAccordionOpen = false;
+    }
+
+    private void CancelEdit()
+    {
+        showEditForm = false;
+        editAccordionOpen = false;
+    }
+
 
     // =============================
     // CRUD
@@ -310,15 +371,21 @@ else
     {
         await TodoService.AddTodoAsync(newTodo);
         todos = await TodoService.GetTodosAsync(filter);
+
         showCreateForm = false;
+        createAccordionOpen = false;
     }
+
 
     private async Task UpdateTodo()
     {
         await TodoService.UpdateTodoAsync(editTodo);
         todos = await TodoService.GetTodosAsync(filter);
+
         showEditForm = false;
+        editAccordionOpen = false;
     }
+
 
     private void ConfirmDelete(TodosVM todo)
     {
