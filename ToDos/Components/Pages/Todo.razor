@@ -93,6 +93,12 @@ else
                 </Template>
             </RadzenDataGridColumn>
 
+            <RadzenDataGridColumn TItem="TodosVM" Title="Statut">
+                <Template Context="t">
+                    @t.Statut
+                </Template>
+            </RadzenDataGridColumn>
+
             <RadzenDataGridColumn TItem="TodosVM" Title="Actions" Sortable="false" Filterable="false" Width="180px">
                 <Template Context="t">
                     <RadzenButton Text="Modifier"
