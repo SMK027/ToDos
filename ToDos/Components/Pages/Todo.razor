@@ -64,59 +64,91 @@ else
         </div>
     </div>
 
-    <RadzenDataGrid Data="@todos"
-                    TItem="TodosVM"
-                    AllowPaging="true"
-                    PageSize="10"
-                    AllowSorting="true"
-                    AllowColumnResize="true"
-                    Responsive="true"
-                    EmptyText="Aucune ToDo"
-                    class="w-100">
+    <div class="table-wrap">
+        <RadzenDataGrid Data="@todos"
+                        TItem="TodosVM"
+                        AllowPaging="true"
+                        PageSize="10"
+                        AllowSorting="true"
+                        AllowColumnResize="true"
+                        Responsive="true"
+                        EmptyText="Aucune ToDo"
+                        class="w-100 dense-grid">
+            <Columns>
+                <RadzenDataGridColumn TItem="TodosVM" Property="Id" Title="ID" Width="70px" />
 
-        <Columns>
-            <RadzenDataGridColumn TItem="TodosVM" Property="Id" Title="ID" Width="80px" />
+                <RadzenDataGridColumn TItem="TodosVM" Property="Libelle" Title="Libellé" Width="220px">
+                    <Template Context="t">
+                        <div class="truncate" title="@t.Libelle">@t.Libelle</div>
+                    </Template>
+                </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="TodosVM" Property="Libelle" Title="Libellé" />
+                <RadzenDataGridColumn TItem="TodosVM" Property="Commentaire" Title="Commentaire" Width="260px">
+                    <Template Context="t">
+                        <div class="truncate" title="@t.Commentaire">@t.Commentaire</div>
+                    </Template>
+                </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="TodosVM" Property="Commentaire" Title="Commentaire" />
+                <RadzenDataGridColumn TItem="TodosVM" Property="Date_planif" Title="Planif" Width="110px">
+                    <Template Context="t">
+                        @t.Date_planif.ToString("yyyy-MM-dd")
+                    </Template>
+                </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="TodosVM" Property="Date_planif" Title="Date planifiée">
-                <Template Context="t">
-                    @t.Date_planif.ToString("yyyy-MM-dd")
-                </Template>
-            </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TodosVM" Property="Date_realisation" Title="Réalisée" Width="110px">
+                    <Template Context="t">
+                        @(t.Date_realisation.HasValue? t.Date_realisation.Value.ToString("yyyy-MM-dd") : "")
+                    </Template>
+                </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="TodosVM" Property="Date_realisation" Title="Date de réalisation">
-                <Template Context="t">
-                    @(t.Date_realisation.HasValue? t.Date_realisation.Value.ToString("yyyy-MM-dd") : "")
-                </Template>
-            </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="TodosVM" Title="Statut" Width="170px">
+                    <Template Context="t">
+                        <div class="d-flex flex-column align-items-start">
+                            <span class="badge @GetStatusBadgeClass(t)">
+                                @t.Statut
+                            </span>
 
-            <RadzenDataGridColumn TItem="TodosVM" Title="Statut">
-                <Template Context="t">
-                    <span class="badge @GetStatusBadgeClass(t)">
-                        @t.Statut
-                    </span>
-                </Template>
-            </RadzenDataGridColumn>
+                            @if (t.DureeAvanceJours > 0)
+                            {
+                                <small class="text-success">
+                                    +@t.DureeAvanceJours j
+                                </small>
+                            }
+                            else if (t.DureeRetardJours > 0)
+                            {
+                                <small class="text-danger">
+                                    -@t.DureeRetardJours j
+                                </small>
+                            }
+                            @* Rien affiché si terminée à temps ou en cours *@
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
 
-            <RadzenDataGridColumn TItem="TodosVM" Title="Actions" Sortable="false" Filterable="false" Width="180px">
-                <Template Context="t">
-                    <RadzenButton Text="Modifier"
-                                  ButtonStyle="ButtonStyle.Warning"
-                                  Size="ButtonSize.Small"
-                                  Click="@(args => ShowEditForm(t))"
-                                  style="margin-right:8px" />
+                <RadzenDataGridColumn TItem="TodosVM"
+                                      Title="Actions"
+                                      Sortable="false"
+                                      Filterable="false"
+                                      Width="90px">
+                    <Template Context="t">
+                        <div class="d-flex gap-1">
+                            <RadzenButton Icon="edit"
+                                          ButtonStyle="ButtonStyle.Warning"
+                                          Size="ButtonSize.Small"
+                                          Click="@(args => ShowEditForm(t))"
+                                          Title="Modifier" />
 
-                    <RadzenButton Text="Supprimer"
-                                  ButtonStyle="ButtonStyle.Danger"
-                                  Size="ButtonSize.Small"
-                                  Click="@(args => ConfirmDelete(t))" />
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
+                            <RadzenButton Icon="delete"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Size="ButtonSize.Small"
+                                          Click="@(args => ConfirmDelete(t))"
+                                          Title="Supprimer" />
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
 
     @if (showDeleteConfirm && todoToDelete != null)
     {
@@ -451,10 +483,8 @@ else
     private string GetStatusBadgeClass(TodosVM t) => t.Statut switch
     {
         "En avance" => "bg-success",
-        "Terminée à temps" => "bg-primary",
+        "À temps" => "bg-primary",
         "En retard" => "bg-danger",
         _ => "bg-secondary" // En cours
     };
-
-
 }

@@ -9,15 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// --- Ajouter DbContext EF Core ---
+// --- Import DbContext EF Core ---
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// --- Ajouter le service TodoService ---
+// --- Import TodoService ---
 builder.Services.AddScoped<TodoService>();
 
-// Service utilisé pour les composants Radzen
+// Import service utilisé pour les composants Radzen
 builder.Services.AddRadzenComponents();
 
 var app = builder.Build();
