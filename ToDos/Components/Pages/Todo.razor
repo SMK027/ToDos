@@ -37,24 +37,24 @@ else
 
             <div class="col-md-2">
                 <label class="form-label">Planif du</label>
-                <InputDate TValue="DateTime?" class="form-control" @bind-Value="filter.PlanifFrom" />
+                <InputDate TValue="DateTime ?" class="form-control" @bind-Value="filter.PlanifFrom" />
             </div>
 
             <div class="col-md-2">
                 <label class="form-label">au</label>
-                <InputDate TValue="DateTime?" class="form-control" @bind-Value="filter.PlanifTo" />
+                <InputDate TValue="DateTime ?" class="form-control" @bind-Value="filter.PlanifTo" />
             </div>
         </div>
 
         <div class="row g-2 mt-2">
             <div class="col-md-2">
                 <label class="form-label">Réalisée du</label>
-                <InputDate TValue="DateTime?" class="form-control" @bind-Value="filter.DoneFrom" />
+                <InputDate TValue="DateTime ?" class="form-control" @bind-Value="filter.DoneFrom" />
             </div>
 
             <div class="col-md-2">
                 <label class="form-label">au</label>
-                <InputDate TValue="DateTime?" class="form-control" @bind-Value="filter.DoneTo" />
+                <InputDate TValue="DateTime ?" class="form-control" @bind-Value="filter.DoneTo" />
             </div>
 
             <div class="col-md-8 d-flex align-items-end justify-content-end gap-2">
@@ -110,17 +110,13 @@ else
 
                             @if (t.DureeAvanceJours > 0)
                             {
-                                <small class="text-success">
-                                    +@t.DureeAvanceJours j
-                                </small>
+                                <small class="text-success">+@t.DureeAvanceJours j</small>
                             }
                             else if (t.DureeRetardJours > 0)
                             {
-                                <small class="text-danger">
-                                    -@t.DureeRetardJours j
-                                </small>
+                                <small class="text-danger">-@t.DureeRetardJours j</small>
                             }
-                            @* Rien affiché si terminée à temps ou en cours *@
+                            @* Rien affiché si "À temps" ou "En cours" *@
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
@@ -158,21 +154,20 @@ else
                 <strong>@todoToDelete.Libelle</strong> ?
             </p>
 
-            <button class="btn btn-danger me-2"
-                    @onclick="DeleteTodo">
+            <button class="btn btn-danger me-2" @onclick="DeleteTodo">
                 Oui, supprimer
             </button>
 
-            <button class="btn btn-secondary"
-                    @onclick="CancelDelete">
+            <button class="btn btn-secondary" @onclick="CancelDelete">
                 Annuler
             </button>
         </div>
     }
-    <button class="btn btn-success mb-3"
-            @onclick="ShowCreateForm">
+
+    <button class="btn btn-success mb-3" @onclick="ShowCreateForm">
         Ajouter une ToDo
     </button>
+
     @if (showCreateForm)
     {
         <div class="accordion mb-3" id="todoCreateAccordion">
@@ -192,13 +187,15 @@ else
                         <EditForm Model="@newTodo"
                                   OnValidSubmit="CreateTodo"
                                   @key="formKey">
-
                             <DataAnnotationsValidator />
+
+                            <ValidationSummary />
 
                             <div class="mb-2">
                                 <label>Libellé</label>
                                 <InputText class="form-control"
                                            @bind-Value="newTodo.Libelle" />
+                                <ValidationMessage For="() => newTodo.Libelle" />
                             </div>
 
                             <div class="mb-2">
@@ -211,7 +208,18 @@ else
                                 <label>Date planifiée</label>
                                 <InputDate TValue="DateTime"
                                            class="form-control"
-                                           @bind-Value="newTodo.Date_planif" />
+                                           @bind-Value="newTodo.Date_planif"
+                                           @attributes="PlanifDateMinAttr" />
+
+                                <ValidationMessage For="() => newTodo.Date_planif" />
+
+                                @* Warning si date < aujourd'hui mais >= aujourd'hui - 7 *@
+                                @if (newTodo.ShouldWarnPlanifInPastButAllowed)
+                                {
+                                    <div class="alert alert-warning py-1 mt-2 mb-0">
+                                        @newTodo.PlanifWarningMessage
+                                    </div>
+                                }
                             </div>
 
                             <div class="mb-2">
@@ -256,13 +264,15 @@ else
                         <EditForm Model="@editTodo"
                                   OnValidSubmit="UpdateTodo"
                                   @key="editFormKey">
-
                             <DataAnnotationsValidator />
+
+                            <ValidationSummary />
 
                             <div class="mb-2">
                                 <label>Libellé</label>
                                 <InputText class="form-control"
                                            @bind-Value="editTodo.Libelle" />
+                                <ValidationMessage For="() => editTodo.Libelle" />
                             </div>
 
                             <div class="mb-2">
@@ -275,7 +285,17 @@ else
                                 <label>Date planifiée</label>
                                 <InputDate TValue="DateTime"
                                            class="form-control"
-                                           @bind-Value="editTodo.Date_planif" />
+                                           @bind-Value="editTodo.Date_planif"
+                                           @attributes="PlanifDateMinAttr" />
+
+                                <ValidationMessage For="() => editTodo.Date_planif" />
+
+                                @if (editTodo.ShouldWarnPlanifInPastButAllowed)
+                                {
+                                    <div class="alert alert-warning py-1 mt-2 mb-0">
+                                        @editTodo.PlanifWarningMessage
+                                    </div>
+                                }
                             </div>
 
                             <div class="mb-2">
@@ -300,8 +320,8 @@ else
             </div>
         </div>
     }
-
 }
+
 @code {
     // =============================
     // Données
@@ -319,7 +339,18 @@ else
     private TodoFilter filter = new();
 
     private string statusValue = ""; // "", "todo", "done"
-    
+
+    // =============================
+    // Min date planif (aujourd'hui - 7 jours)
+    // =============================
+    private DateTime MinPlanifDate => DateTime.Today.AddDays(-7);
+
+    private IReadOnlyDictionary<string, object> PlanifDateMinAttr =>
+        new Dictionary<string, object>
+        {
+            ["min"] = MinPlanifDate.ToString("yyyy-MM-dd")
+        };
+
     // =============================
     // Accordéons
     // =============================
@@ -389,7 +420,6 @@ else
         editAccordionOpen = true; // ouvre l'accordéon
     }
 
-
     private void CancelCreate()
     {
         showCreateForm = false;
@@ -401,7 +431,6 @@ else
         showEditForm = false;
         editAccordionOpen = false;
     }
-
 
     // =============================
     // CRUD
@@ -416,7 +445,6 @@ else
         createAccordionOpen = false;
     }
 
-
     private async Task UpdateTodo()
     {
         await TodoService.UpdateTodoAsync(editTodo);
@@ -425,7 +453,6 @@ else
         showEditForm = false;
         editAccordionOpen = false;
     }
-
 
     private void ConfirmDelete(TodosVM todo)
     {

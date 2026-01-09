@@ -1,18 +1,59 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ToDos.Models
 {
-    public class TodosVM
+    public class TodosVM : IValidatableObject
     {
         public int Id { get; set; }
+
+        [Required(ErrorMessage = "Le libellé est obligatoire.")]
         public string Libelle { get; set; } = string.Empty;
+
         public string? Commentaire { get; set; }
+
+        [Required(ErrorMessage = "La date planifiée est obligatoire.")]
         public DateTime Date_planif { get; set; }
+
         public DateTime? Date_realisation { get; set; }
 
-        // Différence en jours : real - planif
-        // -3 => 3 jours d'avance ; +2 => 2 jours de retard ; 0 => à temps ; null => en cours
+        // =============================
+        // Règles Date_planif
+        // =============================
+
+        [NotMapped]
+        public bool IsPlanifInPast => Date_planif.Date < DateTime.Today;
+
+        // Warning seulement si c'est dans le passé, mais pas au-delà d'une semaine
+        [NotMapped]
+        public bool ShouldWarnPlanifInPastButAllowed =>
+            IsPlanifInPast && Date_planif.Date >= DateTime.Today.AddDays(-7);
+
+        [NotMapped]
+        public string? PlanifWarningMessage =>
+            ShouldWarnPlanifInPastButAllowed
+                ? "Attention : la date planifiée est antérieure à aujourd'hui."
+                : null;
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var minAllowed = DateTime.Today.AddDays(-7);
+
+            if (Date_planif.Date < minAllowed)
+            {
+                yield return new ValidationResult(
+                    "La date planifiée ne peut pas être antérieure à plus d'une semaine avant aujourd'hui.",
+                    new[] { nameof(Date_planif) }
+                );
+            }
+        }
+
+        // =============================
+        // Statut / Durées (inchangé)
+        // =============================
+
         [NotMapped]
         public int? DeltaJours
         {
@@ -49,12 +90,5 @@ namespace ToDos.Models
 
         [NotMapped]
         public int DureeRetardJours => DeltaJours.HasValue && DeltaJours.Value > 0 ? DeltaJours.Value : 0;
-
-        // Optionnel : affichage ready-to-use
-        [NotMapped]
-        public string DureeAvance => DureeAvanceJours > 0 ? $"{DureeAvanceJours} jour(s)" : "";
-
-        [NotMapped]
-        public string DureeRetard => DureeRetardJours > 0 ? $"{DureeRetardJours} jour(s)" : "";
     }
 }
