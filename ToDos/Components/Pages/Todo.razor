@@ -36,7 +36,7 @@ else
             </div>
 
             <div class="col-md-2">
-                <label class="form-label">Planif du</label>
+                <label class="form-label">Planifiée du</label>
                 <InputDate TValue="DateTime ?" class="form-control" @bind-Value="filter.PlanifFrom" />
             </div>
 
@@ -89,13 +89,13 @@ else
                     </Template>
                 </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn TItem="TodosVM" Property="Date_planif" Title="Planif" Width="110px">
+                <RadzenDataGridColumn TItem="TodosVM" Property="Date_planif" Title="Planifiée le" Width="110px">
                     <Template Context="t">
                         @t.Date_planif.ToString("yyyy-MM-dd")
                     </Template>
                 </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn TItem="TodosVM" Property="Date_realisation" Title="Réalisée" Width="110px">
+                <RadzenDataGridColumn TItem="TodosVM" Property="Date_realisation" Title="Réalisée le" Width="110px">
                     <Template Context="t">
                         @(t.Date_realisation.HasValue? t.Date_realisation.Value.ToString("yyyy-MM-dd") : "")
                     </Template>
@@ -110,13 +110,12 @@ else
 
                             @if (t.DureeAvanceJours > 0)
                             {
-                                <small class="text-success">+@t.DureeAvanceJours j</small>
+                                <small class="text-success">@t.DureeAvanceJours j</small>
                             }
                             else if (t.DureeRetardJours > 0)
                             {
-                                <small class="text-danger">-@t.DureeRetardJours j</small>
+                                <small class="text-danger">@t.DureeRetardJours j</small>
                             }
-                            @* Rien affiché si "À temps" ou "En cours" *@
                         </div>
                     </Template>
                 </RadzenDataGridColumn>

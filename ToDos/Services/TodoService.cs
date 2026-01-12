@@ -12,9 +12,6 @@ namespace ToDos.Services
             _context = context;
         }
 
-        public Task<List<TodosVM>> GetTodosAsync()
-            => GetTodosAsync(new TodoFilter());
-
         public async Task<List<TodosVM>> GetTodosAsync(TodoFilter filter)
         {
             IQueryable<TodosVM> query = _context.Todos;
